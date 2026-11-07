@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Send Robux</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: #121212; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        
+        /* Main Container */
+        .app-window {
+            width: 100%;
+            max-width: 390px;
+            height: 700px;
+            background-color: #f7e6f3; /* Pink background dari gambar 1 */
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            position: relative;
+        }
+
+        /* Screen Styles */
+        .screen {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            padding: 16px;
+            background-color: #f7e6f3;
+        }
+        .screen.active { display: flex; }
+        
+        /* Screen 2, 3, 4 Light Gray Background */
+        #screen2, #screen3, #screen4 {
+            background-color: #f4f4f6;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 8px 16px 8px;
+        }
+        .header-left { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 20px; color: #111; }
+        .header-right { display: flex; align-items: center; gap: 12px; }
+        .balance-box { display: flex; align-items: center; gap: 4px; font-size: 16px; font-weight: 700; color: #111; }
+        .close-btn { font-size: 20px; font-weight: bold; color: #111; cursor: pointer; text-decoration: none; }
+
+        /* Robux SVG Logo Exact Copy */
+        .robux-icon {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        /* --- SCREEN 1: FRIENDS LIST --- */
+        .search-box {
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(0,0,0,0.05);
+            border-radius: 20px;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .search-box input {
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 16px;
+            width: 100%;
+            color: #444;
+        }
+        .section-title { font-size: 17px; font-weight: 700; color: #111; margin-bottom: 12px; }
+        
+        .friend-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 0;
+            cursor: pointer;
+        }
+        .avatar-placeholder {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #e0cfdb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .avatar-placeholder img { width: 100%; height: 100%; object-fit: cover; }
+        .friend-name { font-size: 16px; font-weight: 700; color: #111; display: flex; align-items: center; gap: 4px; }
+        .verified-badge { font-size: 12px; opacity: 0.6; }
+
+        /* --- SCREEN 2: NOMINAL & KEYPAD --- */
+        .nominal-title { text-align: center; font-size: 20px; font-family: 'Comic Sans MS', cursive, sans-serif; font-weight: bold; margin-top: 10px; }
+        .profile-center { display: flex; flex-direction: column; align-items: center; margin-top: 15px; }
+        .profile-img-lg { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; }
+        .profile-name-lg { font-size: 15px; font-weight: 700; margin-top: 6px; }
+        
+        .amount-display {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            font-size: 38px;
+            font-weight: 800;
+            margin: 15px 0;
+        }
+
+        .presets-row { display: flex; justify-content: center; gap: 8px; margin-bottom: 15px; }
+        .preset-chip {
+            background: #e4e4e8;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+        }
+
+        .btn-next {
+            background: #8e9bfa;
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .fee-notice { font-size: 11px; color: #666; text-align: center; margin: 8px 0 12px 0; }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-top: auto;
+        }
+        .key-btn {
+            background: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 0;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .key-sub { font-size: 8px; color: #777; display: block; font-weight: bold; letter-spacing: 1px; }
+
+        /* --- SCREEN 3: CONFIRM --- */
+        .info-badges { display: flex; gap: 12px; justify-content: center; font-size: 12px; color: #555; margin: 10px 0; }
+        .confirm-amount-box {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .confirm-amount-val { font-size: 36px; font-weight: 800; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        
+        .action-dual { display: flex; gap: 10px; }
+        .btn-blue { background: #3861fb; color: white; border: none; flex: 1; padding: 14px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+        .btn-gray { background: #e4e4e8; color: #111; border: none; flex: 1; padding: 14px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+
+        /* --- SCREEN 4: SUCCESS --- */
+        .success-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; }
+        .checkmark-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 3px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-window">
+
+    <!-- REUSABLE SVG LOGO ROBUX -->
+    <svg style="display:none;">
+        <symbol id="robux-svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M6.5 2L17.5 2L22 12L17.5 22L6.5 22L2 12L6.5 2Z" fill="none" stroke="currentColor" stroke-width="2.5"/>
+            <rect x="9.5" y="9.5" width="5" height="5" fill="none" stroke="currentColor" stroke-width="2.5"/>
+        </symbol>
+    </svg>
+
+    <!-- SCREEN 1: FRIENDS -->
+    <div id="screen1" class="screen active">
+        <div class="header">
+            <div class="header-left">
+                <span style="font-size: 22px;">⧉</span> Send Robux
+            </div>
+            <div class="header-right">
+                <div class="balance-box">
+                    <svg class="robux-icon"><use href="#robux-svg"/></svg>
+                    <span id="bal1">1,000,000</span>
+                </div>
+                <span class="close-btn" onclick="resetAll()">✕</span>
+            </div>
+        </div>
+
+        <div class="search-box">
+            <span style="color:#888;">🔍</span>
+            <input type="text" id="searchInput" placeholder="Search" oninput="filterFriends(this.value)">
+        </div>
+
+        <div class="section-title">My friends (58)</div>
+
+        <div id="friendsContainer">
+            <div class="friend-row" onclick="chooseUser('Nexvolt', '@Nexvolt', 'https://via.placeholder.com/150/e0cfdb/555?text=N')">
+                <div class="avatar-placeholder"></div>
+                <div class="friend-name">Nexvolt <span class="verified-badge">⧉</span></div>
+            </div>
+            <div class="friend-row" onclick="chooseUser('Zyyforever', '@Zyyforever', 'https://via.placeholder.com/150/e0cfdb/555?text=Z')">
+                <div class="avatar-placeholder"></div>
+                <div class="friend-name">Zyyforever</div>
+            </div>
+            <div class="friend-row" onclick="chooseUser('starfish', '@StarfishLaut', 'https://tr.rbxcdn.com/30DAY-AvatarHeadshot-123456789ABCDEF0123456789ABCDEF0-Png/150/150/AvatarHeadshot/noFilter')">
+                <div class="avatar-placeholder"><img src="https://tr.rbxcdn.com/30DAY-AvatarHeadshot-123456789ABCDEF0123456789ABCDEF0-Png/150/150/AvatarHeadshot/noFilter" alt=""></div>
+                <div class="friend-name">starfish</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 2: NOMINAL & KEYPAD -->
+    <div id="screen2" class="screen">
+        <div class="header">
+            <div class="header-left">
+                <span style="font-size: 22px;">⧉</span> Send Robux
+            </div>
+            <div class="header-right">
+                <div class="balance-box">
+                    <svg class="robux-icon"><use href="#robux-svg"/></svg>
+                    <span id="bal2">1,000,000</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="nominal-title">NOMINAL</div>
+
+        <div class="profile-center">
+            <img id="uAvatar2" class="profile-img-lg" src="" alt="">
+            <div id="uName2" class="profile-name-lg">starfish</div>
+        </div>
+
+        <div class="amount-display">
+            <svg class="robux-icon" style="width: 32px; height: 32px;"><use href="#robux-svg"/></svg>
+            <span id="typedAmount">0</span>
+        </div>
+
+        <div class="presets-row">
+            <button class="preset-chip" onclick="addPreset(25)"><svg class="robux-icon"><use href="#robux-svg"/></svg> 25</button>
+            <button class="preset-chip" onclick="addPreset(50)"><svg class="robux-icon"><use href="#robux-svg"/></svg> 50</button>
+            <button class="preset-chip" onclick="addPreset(100)"><svg class="robux-icon"><use href="#robux-svg"/></svg> 100</button>
+            <button class="preset-chip" onclick="addPreset(200)"><svg class="robux-icon"><use href="#robux-svg"/></svg> 200</button>
+        </div>
+
+        <button class="btn-next" onclick="navTo('screen3')">Next</button>
+        <div class="fee-notice">Robux are sent instantly with no fees</div>
+
+        <div class="keypad">
+            <button class="key-btn" onclick="pressNum('1')">1</button>
+            <button class="key-btn" onclick="pressNum('2')">2<span class="key-sub">ABC</span></button>
+            <button class="key-btn" onclick="pressNum('3')">3<span class="key-sub">DEF</span></button>
+            <button class="key-btn" onclick="pressNum('4')">4<span class="key-sub">GHI</span></button>
+            <button class="key-btn" onclick="pressNum('5')">5<span class="key-sub">JKL</span></button>
+            <button class="key-btn" onclick="pressNum('6')">6<span class="key-sub">MNO</span></button>
+            <button class="key-btn" onclick="pressNum('7')">7<span class="key-sub">PQRS</span></button>
+            <button class="key-btn" onclick="pressNum('8')">8<span class="key-sub">TUV</span></button>
+            <button class="key-btn" onclick="pressNum('9')">9<span class="key-sub">WXYZ</span></button>
+            <button class="key-btn" style="background:transparent;"></button>
+            <button class="key-btn" onclick="pressNum('0')">0</button>
+            <button class="key-btn" onclick="pressDel()">⌫</button>
+        </div>
+    </div>
+
+    <!-- SCREEN 3: CONFIRM -->
+    <div id="screen3" class="screen">
+        <div class="header">
+            <div class="header-left">
+                <span style="font-size: 22px;">⧉</span> Send Robux
+            </div>
+            <div class="header-right">
+                <div class="balance-box">
+                    <svg class="robux-icon"><use href="#robux-svg"/></svg>
+                    <span id="bal3">1,000,000</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-center" style="margin-top: 20px;">
+            <img id="uAvatar3" class="profile-img-lg" style="width:80px; height:80px;" src="" alt="">
+            <div id="uName3" class="profile-name-lg" style="font-size: 18px;">starfish</div>
+            <div id="uUser3" style="font-size: 13px; color: #666; margin-top:2px;">@StarfishLaut</div>
+        </div>
+
+        <div class="info-badges">
+            <span>📅 Connected 2 years</span>
+            <span>👥 36 mutual Friends</span>
+        </div>
+        <div style="text-align: center; font-size: 12px; color: #666; margin-bottom: 20px;">ℹ Joined in 2021</div>
+
+        <div class="confirm-amount-box">
+            <div class="confirm-amount-val">
+                <svg class="robux-icon" style="width: 36px; height: 36px;"><use href="#robux-svg"/></svg>
+                <span id="finalAmt">100</span>
+            </div>
+            <div style="font-size: 13px; color: #666; margin-top: 8px;">The recipient will get <span id="finalAmtText">100</span> Robux.</div>
+        </div>
+
+        <div style="margin-top: auto;">
+            <div class="action-dual">
+                <button class="btn-blue" onclick="processSend()">Send</button>
+                <button class="btn-gray" onclick="navTo('screen2')">Edit</button>
+            </div>
+            <div style="font-size: 11px; color: #888; text-align: center; margin-top: 14px; line-height: 1.4;">
+                You need an age check or parental consent to send Robux. Once you send, you cannot cancel.
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 4: SUCCESS -->
+    <div id="screen4" class="screen">
+        <div class="header">
+            <div class="header-left">
+                <span style="font-size: 22px;">⧉</span> Send Robux
+            </div>
+            <div class="header-right">
+                <div class="balance-box">
+                    <svg class="robux-icon"><use href="#robux-svg"/></svg>
+                    <span id="bal4">999,900</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="success-wrapper">
+            <div class="checkmark-circle">✓</div>
+            <div style="font-size: 20px; font-weight: 700; color: #111;" id="successText">You sent 100 Robux</div>
+            <button class="btn-blue" style="width: 100%; margin-top: 40px;" onclick="resetAll()">OK</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let balance = 1000000;
+    let selectedUser = { name: 'starfish', user: '@StarfishLaut', avatar: 'https://tr.rbxcdn.com/30DAY-AvatarHeadshot-123456789ABCDEF0123456789ABCDEF0-Png/150/150/AvatarHeadshot/noFilter' };
+    let inputStr = "0";
+
+    function updateBalances() {
+        const formatted = balance.toLocaleString();
+        document.getElementById('bal1').innerText = formatted;
+        document.getElementById('bal2').innerText = formatted;
+        document.getElementById('bal3').innerText = formatted;
+        document.getElementById('bal4').innerText = formatted;
+    }
+
+    function navTo(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+    }
+
+    function chooseUser(name, handle, avatar) {
+        selectedUser = { name, user: handle, avatar };
+        document.getElementById('uName2').innerText = name;
+        document.getElementById('uAvatar2').src = avatar;
+        
+        document.getElementById('uName3').innerText = name;
+        document.getElementById('uUser3').innerText = handle;
+        document.getElementById('uAvatar3').src = avatar;
+
+        inputStr = "0";
+        renderAmount();
+        navTo('screen2');
+    }
+
+    function pressNum(num) {
+        if (inputStr === "0") inputStr = num;
+        else if (inputStr.length < 7) inputStr += num;
+        renderAmount();
+    }
+
+    function pressDel() {
+        if (inputStr.length > 1) inputStr = inputStr.slice(0, -1);
+        else inputStr = "0";
+        renderAmount();
+    }
+
+    function addPreset(val) {
+        inputStr = val.toString();
+        renderAmount();
+    }
+
+    function renderAmount() {
+        document.getElementById('typedAmount').innerText = parseInt(inputStr).toLocaleString();
+        document.getElementById('finalAmt').innerText = parseInt(inputStr).toLocaleString();
+        document.getElementById('finalAmtText').innerText = parseInt(inputStr).toLocaleString();
+    }
+
+    function processSend() {
+        const cost = parseInt(inputStr);
+        if (cost <= 0) return alert('Masukkan nominal!');
+        if (cost > balance) return alert('Saldo tidak mencukupi!');
+
+        balance -= cost;
+        updateBalances();
+        document.getElementById('successText').innerText = `You sent ${cost.toLocaleString()} Robux`;
+        navTo('screen4');
+    }
+
+    function resetAll() {
+        inputStr = "0";
+        renderAmount();
+        navTo('screen1');
+    }
+
+    function filterFriends(q) {
+        const rows = document.querySelectorAll('.friend-row');
+        rows.forEach(r => {
+            r.style.display = r.innerText.toLowerCase().includes(q.toLowerCase()) ? 'flex' : 'none';
+        });
+    }
+
+    updateBalances();
+</script>
+
+</body>
+</html>
